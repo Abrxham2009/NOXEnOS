@@ -16,7 +16,7 @@ tar
 konsole
 plasma-systemmonitor
 
-# Web Browser
+# Web Browser (Installed via Mozilla Team PPA)
 firefox
 firefox-locale-es
 

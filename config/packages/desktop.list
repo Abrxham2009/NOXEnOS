@@ -22,11 +22,8 @@ kde-config-gtk-style
 kde-config-screenlocker
 kde-config-sddm
 plasma-widgets-addons
-plasma-runners-addons
-kgamma5
 polkit-kde-agent-1
 kmenuedit
-appmenu-gtk-module
 appmenu-gtk3-module
 plasma-browser-integration
 

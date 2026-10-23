@@ -58,7 +58,15 @@ mkdir -p "$ROOTFS_DIR" "$ISO_DIR/casper" "$ISO_DIR/boot/grub" "$ISO_DIR/isolinux
 echo "[*] Creando sistema base con debootstrap (Ubuntu $DISTRO_CODENAME)..."
 debootstrap --arch=amd64 --variant=minbase "$DISTRO_CODENAME" "$ROOTFS_DIR" "$UBUNTU_MIRROR"
 
-# 5. Mount virtual filesystems inside rootfs
+# 5. Prevent daemons from starting inside chroot
+echo "[*] Configurando policy-rc.d para evitar fallos de demonios en chroot..."
+cat << 'EOF' > "$ROOTFS_DIR/usr/sbin/policy-rc.d"
+#!/bin/sh
+exit 101
+EOF
+chmod +x "$ROOTFS_DIR/usr/sbin/policy-rc.d"
+
+# 6. Mount virtual filesystems inside rootfs
 echo "[*] Montando /dev, /proc, /sys en el entorno chroot..."
 mount --bind /dev "$ROOTFS_DIR/dev"
 mount --bind /dev/pts "$ROOTFS_DIR/dev/pts"
@@ -69,7 +77,7 @@ mount -t tmpfs none "$ROOTFS_DIR/run"
 # Configure DNS for chroot
 cp /etc/resolv.conf "$ROOTFS_DIR/etc/resolv.conf"
 
-# 6. Configure APT Repositories inside chroot
+# 7. Configure APT Repositories inside chroot
 echo "[*] Configurando repositorios APT oficiales de Ubuntu LTS..."
 cat << EOF > "$ROOTFS_DIR/etc/apt/sources.list"
 deb $UBUNTU_MIRROR $DISTRO_CODENAME main restricted universe multiverse
@@ -77,8 +85,8 @@ deb $UBUNTU_MIRROR $DISTRO_CODENAME-updates main restricted universe multiverse
 deb $UBUNTU_MIRROR $DISTRO_CODENAME-security main restricted universe multiverse
 EOF
 
-# 7. Package installation via chroot helper
-echo "[*] Instalando paquetes del sistema..."
+# 8. Package installation preparation & Mozilla PPA
+echo "[*] Configurando repositorios adicionales (PPA Mozilla para Firefox nativo sin snap)..."
 cat << 'CHROOT_PREP' > "$ROOTFS_DIR/tmp/install_packages.sh"
 #!/bin/bash
 set -eo pipefail
@@ -91,6 +99,16 @@ apt-get install -y --no-install-recommends software-properties-common apt-transp
 # Add universe and multiverse officially
 add-apt-repository -y universe
 add-apt-repository -y multiverse
+
+# Add Mozilla Team PPA for native non-snap Firefox in chroot
+add-apt-repository -y ppa:mozillateam/ppa
+
+cat << 'PPA_PREF' > /etc/apt/preferences.d/mozilla-firefox
+Package: firefox*
+Pin: release o=LP-PPA-mozillateam
+Pin-Priority: 1001
+PPA_PREF
+
 apt-get update
 
 CHROOT_PREP
@@ -98,7 +116,7 @@ chmod +x "$ROOTFS_DIR/tmp/install_packages.sh"
 chroot "$ROOTFS_DIR" /tmp/install_packages.sh
 rm -f "$ROOTFS_DIR/tmp/install_packages.sh"
 
-# Install package lists
+# Resilient package installer
 install_package_list() {
     local list_file="$1"
     echo "[*] Procesando lista de paquetes: $(basename "$list_file")..."
@@ -111,7 +129,12 @@ install_package_list() {
     done < "$list_file"
 
     if [ ${#pkgs[@]} -gt 0 ]; then
-        chroot "$ROOTFS_DIR" env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${pkgs[@]}"
+        if ! chroot "$ROOTFS_DIR" env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${pkgs[@]}"; then
+            echo "[!] Fallo en lote, instalando paquetes uno a uno para aislar dependencias..."
+            for p in "${pkgs[@]}"; do
+                chroot "$ROOTFS_DIR" env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$p" || echo "[-] Omitiendo paquete no disponible: $p"
+            done
+        fi
     fi
 }
 
@@ -130,7 +153,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     fi
 done < "$PROJECT_ROOT/config/packages/remove.list"
 
-# 8. Configure Localization (Spanish default)
+# 9. Configure Localization (Spanish default)
 echo "[*] Configurando localización española (es_ES.UTF-8)..."
 chroot "$ROOTFS_DIR" locale-gen es_ES.UTF-8
 chroot "$ROOTFS_DIR" update-locale LANG=es_ES.UTF-8 LC_ALL=es_ES.UTF-8
@@ -149,7 +172,7 @@ EOF
 echo "Europe/Madrid" > "$ROOTFS_DIR/etc/timezone"
 chroot "$ROOTFS_DIR" ln -sf /usr/share/zoneinfo/Europe/Madrid /etc/localtime
 
-# 9. Configure Live User and Hostname
+# 10. Configure Live User and Hostname
 echo "[*] Configurando usuario Live y hostname..."
 echo "noxenos" > "$ROOTFS_DIR/etc/hostname"
 cat << 'EOF' > "$ROOTFS_DIR/etc/hosts"
@@ -172,7 +195,7 @@ User=noxenos
 Session=plasma
 EOF
 
-# 10. Copy NOXEnOS Branding and Desktop Configurations
+# 11. Copy NOXEnOS Branding and Desktop Configurations
 echo "[*] Integrando branding, fondos de pantalla y temas..."
 
 # Wallpapers
@@ -241,23 +264,31 @@ chmod +x "$ROOTFS_DIR/usr/local/bin/noxo-control" "$ROOTFS_DIR/usr/local/bin/nox
 cp "$PROJECT_ROOT/config/optimization/99-noxenos-performance.conf" "$ROOTFS_DIR/etc/sysctl.d/"
 cp "$PROJECT_ROOT/config/optimization/zram-tools" "$ROOTFS_DIR/etc/default/zram-tools"
 
-# 11. Extract Kernel and Initramfs for ISO Casper
+# 12. Extract Kernel and Initramfs for ISO Casper
 echo "[*] Extrayendo kernel e initramfs para casper..."
-KERNEL_IMG=$(ls -1 "$ROOTFS_DIR/boot/vmlinuz-"* | sort -V | tail -n 1)
-INITRD_IMG=$(ls -1 "$ROOTFS_DIR/boot/initrd.img-"* | sort -V | tail -n 1)
+KERNEL_IMG=$(ls -1 "$ROOTFS_DIR/boot/vmlinuz-"* 2>/dev/null | sort -V | tail -n 1 || true)
+INITRD_IMG=$(ls -1 "$ROOTFS_DIR/boot/initrd.img-"* 2>/dev/null | sort -V | tail -n 1 || true)
+
+if [ -z "$KERNEL_IMG" ] || [ -z "$INITRD_IMG" ]; then
+    echo "[!] Generando initramfs para casper..."
+    chroot "$ROOTFS_DIR" update-initramfs -c -k all
+    KERNEL_IMG=$(ls -1 "$ROOTFS_DIR/boot/vmlinuz-"* | sort -V | tail -n 1)
+    INITRD_IMG=$(ls -1 "$ROOTFS_DIR/boot/initrd.img-"* | sort -V | tail -n 1)
+fi
 
 cp "$KERNEL_IMG" "$ISO_DIR/casper/vmlinuz"
 cp "$INITRD_IMG" "$ISO_DIR/casper/initrd"
 
-# 12. Clean chroot and unmount
+# 13. Clean chroot and unmount
 echo "[*] Limpiando caches de APT y archivos temporales..."
+rm -f "$ROOTFS_DIR/usr/sbin/policy-rc.d"
 chroot "$ROOTFS_DIR" apt-get autoremove -y --purge
 chroot "$ROOTFS_DIR" apt-get clean
 rm -rf "$ROOTFS_DIR/tmp/"* "$ROOTFS_DIR/var/tmp/"*
 rm -f "$ROOTFS_DIR/etc/resolv.conf"
 cleanup
 
-# 13. Create Squashfs Filesystem
+# 14. Create Squashfs Filesystem
 echo "[*] Creando sistema de archivos comprimido (Squashfs XZ)..."
 mksquashfs "$ROOTFS_DIR" "$ISO_DIR/casper/filesystem.squashfs" -comp xz -noappend -b 1048576
 
@@ -265,7 +296,7 @@ mksquashfs "$ROOTFS_DIR" "$ISO_DIR/casper/filesystem.squashfs" -comp xz -noappen
 printf $(du -sx --block-size=1 "$ROOTFS_DIR" | cut -f1) > "$ISO_DIR/casper/filesystem.size"
 chroot "$ROOTFS_DIR" dpkg-query -W --showformat='${Package} ${Version}\n' > "$ISO_DIR/casper/filesystem.manifest" 2>/dev/null || true
 
-# 14. Setup Bootloaders (GRUB2 & ISOLINUX)
+# 15. Setup Bootloaders (GRUB2 & ISOLINUX)
 echo "[*] Preparando cargadores de arranque UEFI y BIOS..."
 cp "$PROJECT_ROOT/config/iso/boot/grub/grub.cfg" "$ISO_DIR/boot/grub/grub.cfg"
 cp "$PROJECT_ROOT/config/iso/isolinux/isolinux.cfg" "$ISO_DIR/isolinux/isolinux.cfg"
@@ -275,7 +306,7 @@ dd if=/dev/zero of="$ISO_DIR/boot/grub/efi.img" bs=1M count=8
 mkfs.vfat "$ISO_DIR/boot/grub/efi.img"
 mmd -i "$ISO_DIR/boot/grub/efi.img" ::/EFI ::/EFI/BOOT
 
-# Copy EFI bootloader binary if available on host, or generate via grub-mkstandalone
+# Copy EFI bootloader binary
 if [ -f "/usr/lib/grub/x86_64-efi/monolithic/grubx64.efi" ]; then
     mcopy -i "$ISO_DIR/boot/grub/efi.img" /usr/lib/grub/x86_64-efi/monolithic/grubx64.efi ::/EFI/BOOT/BOOTX64.EFI
 else
@@ -297,7 +328,7 @@ for f in isolinux.bin ldlinux.c32 libcom.c32 libutil.c32 vesamenu.c32; do
     fi
 done
 
-# 15. Generate Hybrid ISO with Xorriso
+# 16. Generate Hybrid ISO with Xorriso
 echo "[*] Generando imagen ISO híbrida arrancable con xorriso..."
 xorriso -as mkisofs \
     -r -V "${DISTRO_NAME}_${DISTRO_VERSION}" \
@@ -310,7 +341,7 @@ xorriso -as mkisofs \
     -no-emul-boot -isohybrid-gpt-basdat \
     "$ISO_DIR"
 
-# 16. Generate Checksum
+# 17. Generate Checksum
 echo "[*] Calculando suma de verificación SHA-256..."
 cd "$OUTPUT_DIR"
 sha256sum "$(basename "$FINAL_ISO")" > "${FINAL_ISO}.sha256"
