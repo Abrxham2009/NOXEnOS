@@ -319,14 +319,13 @@ else
     mcopy -i "$ISO_DIR/boot/grub/efi.img" "$ISO_DIR/EFI/BOOT/BOOTX64.EFI" ::/EFI/BOOT/BOOTX64.EFI 2>/dev/null || true
 fi
 
-# ISOLINUX files
-for f in isolinux.bin ldlinux.c32 libcom.c32 libutil.c32 vesamenu.c32; do
-    if [ -f "/usr/lib/ISOLINUX/$f" ]; then
-        cp "/usr/lib/ISOLINUX/$f" "$ISO_DIR/isolinux/"
-    elif [ -f "/usr/lib/syslinux/modules/bios/$f" ]; then
-        cp "/usr/lib/syslinux/modules/bios/$f" "$ISO_DIR/isolinux/"
-    fi
-done
+# ISOLINUX files (Include all 32-bit COM32 modules: libcom32, libutil, vesamenu, etc.)
+if [ -d "/usr/lib/ISOLINUX" ]; then
+    cp -r /usr/lib/ISOLINUX/* "$ISO_DIR/isolinux/" 2>/dev/null || true
+fi
+if [ -d "/usr/lib/syslinux/modules/bios" ]; then
+    cp -r /usr/lib/syslinux/modules/bios/* "$ISO_DIR/isolinux/" 2>/dev/null || true
+fi
 
 # 16. Generate Hybrid ISO with Xorriso
 echo "[*] Generando imagen ISO híbrida arrancable con xorriso..."

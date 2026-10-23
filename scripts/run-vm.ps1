@@ -51,15 +51,17 @@ if ($vmExists) {
     Write-Host "[*] La máquina virtual '$VmName' ya existe. Deteniendo si está en ejecución..." -ForegroundColor Yellow
     & $VBoxManage controlvm $VmName poweroff 2>$null
     Start-Sleep -Seconds 1
+    & $VBoxManage modifyvm $VmName --firmware efi
 } else {
     Write-Host "[*] Creando nueva máquina virtual '$VmName'..." -ForegroundColor Cyan
     & $VBoxManage createvm --name $VmName --ostype "Ubuntu_64" --register
     
-    # Configure base hardware
+    # Configure base hardware with EFI firmware
     & $VBoxManage modifyvm $VmName `
         --memory $RamMB `
         --cpus $CpuCount `
         --vram 128 `
+        --firmware efi `
         --graphicscontroller vmsvga `
         --accelerate3d on `
         --boot1 dvd `
