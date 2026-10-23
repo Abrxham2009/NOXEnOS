@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Exec=plank
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Plank Dock
+Comment=Dock con efecto de aumento tipo macOS para NOXEnOS
+X-KDE-autostart-phase=2

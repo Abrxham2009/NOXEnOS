@@ -1,0 +1,53 @@
+# NOXEnOS Linux - KDE Plasma Desktop Environment Packages
+
+# KDE Plasma Shell & Core Components
+plasma-desktop
+plasma-workspace
+plasma-workspace-wayland
+kwin-x11
+kwin-wayland
+plasma-nm
+plasma-pa
+bluedevil
+powerdevil
+kscreen
+sddm
+sddm-theme-breeze
+breeze
+breeze-icon-theme
+breeze-cursor-theme
+
+# KDE System & Integration
+kde-config-gtk-style
+kde-config-screenlocker
+kde-config-sddm
+plasma-widgets-addons
+plasma-runners-addons
+kgamma5
+polkit-kde-agent-1
+kmenuedit
+appmenu-gtk-module
+appmenu-gtk3-module
+plasma-browser-integration
+
+# Dock subsystem (Smooth zoom magnification, macOS dock mechanics)
+plank
+
+# Fonts and rendering
+fonts-noto-core
+fonts-noto-cjk
+fonts-noto-color-emoji
+fonts-inter
+fonts-liberation2
+fonts-dejavu-core
+fontconfig
+
+# Plymouth boot splash
+plymouth
+plymouth-themes
+plymouth-label
+
+# Desktop notification & tray
+libnotify-bin
+kdialog
+zenity

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Exec=/usr/local/bin/noxo-welcome
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=NOXEnOS Welcome
+Comment=Bienvenido a NOXEnOS Linux
+X-KDE-autostart-phase=2

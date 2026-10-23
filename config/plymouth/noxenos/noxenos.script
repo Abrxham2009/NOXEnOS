@@ -1,0 +1,60 @@
+# NOXEnOS Plymouth Script
+# Centers logo, renders smooth progress animation on deep space background
+
+# Screen dimensions
+screen.w = Window.GetWidth();
+screen.h = Window.GetHeight();
+
+# Background color: Deep slate #0a0d14
+Window.SetBackgroundTopColor(0.04, 0.05, 0.08);
+Window.SetBackgroundBottomColor(0.04, 0.05, 0.08);
+
+# Logo
+logo.image = Image("logo.png");
+logo.sprite = Sprite(logo.image);
+logo.w = logo.image.GetWidth();
+logo.h = logo.image.GetHeight();
+logo.x = (screen.w - logo.w) / 2;
+logo.y = (screen.h - logo.h) / 2 - 40;
+logo.sprite.SetPosition(logo.x, logo.y, 10);
+logo.sprite.SetOpacity(1.0);
+
+# Progress track
+track.image = Image("progress-track.png");
+track.sprite = Sprite(track.image);
+track.w = track.image.GetWidth();
+track.h = track.image.GetHeight();
+track.x = (screen.w - track.w) / 2;
+track.y = logo.y + logo.h + 50;
+track.sprite.SetPosition(track.x, track.y, 10);
+
+# Progress fill
+fill.orig_image = Image("progress-fill.png");
+fill.sprite = Sprite();
+fill.sprite.SetPosition(track.x, track.y, 11);
+
+# Animation & updates
+fun refresh_callback () {
+    # Pulsing or idle refresh
+}
+Plymouth.SetRefreshFunction (refresh_callback);
+
+fun boot_progress_callback (duration, progress) {
+    if (progress < 0.0) progress = 0.0;
+    if (progress > 1.0) progress = 1.0;
+    
+    fill_width = Math.Int(track.w * progress);
+    if (fill_width > 0) {
+        fill.image = fill.orig_image.Scale(fill_width, track.h);
+        fill.sprite.SetImage(fill.image);
+    }
+}
+Plymouth.SetBootProgressFunction(boot_progress_callback);
+
+# Quit callback
+fun quit_callback () {
+    logo.sprite.SetOpacity(0);
+    track.sprite.SetOpacity(0);
+    fill.sprite.SetOpacity(0);
+}
+Plymouth.SetQuitFunction(quit_callback);

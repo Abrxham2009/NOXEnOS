@@ -1,0 +1,10 @@
+# Configuration for zram-tools in NOXEnOS Linux
+
+# Allocation of RAM to ZRAM (percentage of total physical RAM)
+PERCENT=50
+
+# Compression algorithm: zstd gives superior compression ratio & high decompression speed
+ALGO=zstd
+
+# Priority of zram swap
+PRIORITY=100

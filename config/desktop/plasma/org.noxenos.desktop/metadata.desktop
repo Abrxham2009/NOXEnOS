@@ -1,0 +1,16 @@
+[Desktop Entry]
+Comment=NOXEnOS Linux Look and Feel - Elegant macOS workflow with futuristic identity
+Comment[es]=Apariencia y comportamiento de NOXEnOS Linux - Flujo de trabajo tipo macOS con identidad futurista
+Encoding=UTF-8
+Keywords=Desktop;Workspace;Appearance;Look and Feel;macOS;Futuristic;
+Name=NOXEnOS
+Name[es]=NOXEnOS
+Type=Service
+X-KDE-PluginInfo-Author=NOXEnOS Development Team
+X-KDE-PluginInfo-Category=
+X-KDE-PluginInfo-Email=dev@noxenos.org
+X-KDE-PluginInfo-License=GPL-3.0+
+X-KDE-PluginInfo-Name=org.noxenos.desktop
+X-KDE-PluginInfo-Version=1.0.0
+X-KDE-PluginInfo-Website=https://noxenos.org
+X-Plasma-MainScript=defaults

@@ -1,0 +1,21 @@
+[General]
+ColorScheme=NOXEnOSDark
+Name=NOXEnOS Dark
+TerminalApplication=konsole
+fixed=Hack,10,-1,5,50,0,0,0,0,0
+font=Inter,10,-1,5,50,0,0,0,0,0
+menuFont=Inter,10,-1,5,50,0,0,0,0,0
+smallestReadableFont=Inter,8,-1,5,50,0,0,0,0,0
+toolBarFont=Inter,9,-1,5,50,0,0,0,0,0
+
+[Icons]
+Theme=breeze-dark
+
+[KDE]
+ShowDeleteCommand=true
+SingleClick=false
+AnimationDurationFactor=1.0
+
+[Mouse]
+cursorTheme=breeze_cursors
+cursorSize=24

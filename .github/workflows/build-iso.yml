@@ -1,0 +1,80 @@
+name: Build and Release NOXEnOS Linux ISO
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: # Permite compilar manualmente con un clic en GitHub
+
+jobs:
+  build-iso:
+    name: Build Bootable ISO Image
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Host Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            debootstrap \
+            squashfs-tools \
+            xorriso \
+            grub-pc-bin \
+            grub-efi-amd64-bin \
+            grub-common \
+            mtools \
+            dosfstools \
+            isolinux \
+            syslinux-common \
+            rsync \
+            curl \
+            python3-pillow
+
+      - name: Verify Pre-Build Sanity & Tests
+        run: |
+          python3 -m unittest discover -s tests -p "test_*.py" -v
+          bash scripts/test-build.sh
+
+      - name: Build Official NOXEnOS ISO
+        run: |
+          sudo bash scripts/build-iso.sh
+
+      - name: Verify ISO Integrity & Checksum
+        run: |
+          bash scripts/verify-iso.sh output/NOXEnOS.iso
+
+      - name: Upload ISO Checksum Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOXEnOS-sha256
+          path: output/NOXEnOS.iso.sha256
+
+      - name: Upload Bootable ISO Artifact (Direct Download)
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOXEnOS-2026.1-LTS-x86_64
+          path: output/NOXEnOS.iso
+          retention-days: 14
+
+      - name: Create GitHub Release (If tagged or manual)
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            output/NOXEnOS.iso
+            output/NOXEnOS.iso.sha256
+          tag_name: v2026.1
+          name: "NOXEnOS Linux 2026.1 LTS"
+          body: |
+            ## NOXEnOS Linux 2026.1 LTS Oficial
+            **«Your system. Your style.»**
+            
+            - **Base:** Ubuntu 24.04 LTS (Noble Numbat)
+            - **Escritorio:** KDE Plasma 5.27 LTS con barra superior integrada y dock estilo macOS con magnificación fluida
+            - **Ofimática:** LibreOffice completo en español
+            - **Instalador:** Calamares 3.3+ con particionado seguro y soporte UEFI/BIOS
+          draft: false
+          prerelease: false

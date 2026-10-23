@@ -1,0 +1,20 @@
+# NOXEnOS Linux - Office Suite (LibreOffice Complete + Spanish Support)
+
+libreoffice
+libreoffice-kf5
+libreoffice-plasma
+libreoffice-writer
+libreoffice-calc
+libreoffice-impress
+libreoffice-draw
+libreoffice-math
+libreoffice-base
+
+# Spanish language packs & dictionaries
+libreoffice-l10n-es
+libreoffice-help-es
+hunspell-es
+mythes-es
+hyphen-es
+fonts-crosextra-carlito
+fonts-crosextra-caladea

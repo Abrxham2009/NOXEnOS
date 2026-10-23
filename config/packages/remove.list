@@ -1,0 +1,17 @@
+# NOXEnOS Linux - Packages to exclude/remove for clean system
+
+gnome-games
+aisleriot
+gnome-mahjongg
+gnome-mines
+gnome-sudoku
+xterm
+nano-tiny
+popularity-contest
+whoopsie
+apport
+telepathy-*
+kde-telepathy
+thunderbird
+transmission-gtk
+transmission-qt

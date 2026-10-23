@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Bienvenido a NOXEnOS
+GenericName=Asistente de Bienvenida
+Comment=Primeros pasos y personalización de NOXEnOS
+Exec=/usr/local/bin/noxo-welcome
+Icon=noxenos
+Terminal=false
+StartupNotify=true
+Categories=Utility;

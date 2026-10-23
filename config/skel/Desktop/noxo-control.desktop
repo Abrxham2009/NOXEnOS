@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Personalización NOXEnOS
+GenericName=Control de Apariencia
+Comment=Cambiar temas, fondos, dock y modo de rendimiento
+Exec=/usr/local/bin/noxo-control gui
+Icon=preferences-desktop-theme
+Terminal=false
+StartupNotify=true
+Categories=Settings;DesktopSettings;

@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Instalar NOXEnOS Linux
+GenericName=Instalador del Sistema
+Comment=Instalar NOXEnOS permanentemente en el disco
+Exec=pkexec calamares
+Icon=calamares
+Terminal=false
+StartupNotify=true
+Categories=Qt;System;
+Actions=Setup;
+
+[Desktop Action Setup]
+Name=Instalar ahora
+Exec=pkexec calamares

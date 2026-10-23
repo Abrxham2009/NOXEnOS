@@ -1,0 +1,53 @@
+[Default Applications]
+# Office Documents
+application/vnd.openxmlformats-officedocument.wordprocessingml.document=libreoffice-writer.desktop
+application/msword=libreoffice-writer.desktop
+application/vnd.oasis.opendocument.text=libreoffice-writer.desktop
+application/vnd.oasis.opendocument.text-template=libreoffice-writer.desktop
+application/rtf=libreoffice-writer.desktop
+
+# Spreadsheets
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet=libreoffice-calc.desktop
+application/vnd.ms-excel=libreoffice-calc.desktop
+application/vnd.oasis.opendocument.spreadsheet=libreoffice-calc.desktop
+application/vnd.oasis.opendocument.spreadsheet-template=libreoffice-calc.desktop
+text/csv=libreoffice-calc.desktop
+
+# Presentations
+application/vnd.openxmlformats-officedocument.presentationml.presentation=libreoffice-impress.desktop
+application/vnd.ms-powerpoint=libreoffice-impress.desktop
+application/vnd.oasis.opendocument.presentation=libreoffice-impress.desktop
+application/vnd.oasis.opendocument.presentation-template=libreoffice-impress.desktop
+
+# Vector & PDF
+application/pdf=libreoffice-draw.desktop
+application/vnd.oasis.opendocument.graphics=libreoffice-draw.desktop
+
+# Web & Internet
+x-scheme-handler/http=firefox.desktop
+x-scheme-handler/https=firefox.desktop
+text/html=firefox.desktop
+
+# Multimedia
+video/mp4=vlc.desktop
+video/x-matroska=vlc.desktop
+video/quicktime=vlc.desktop
+video/webm=vlc.desktop
+audio/mpeg=vlc.desktop
+audio/flac=vlc.desktop
+audio/ogg=vlc.desktop
+
+# Images
+image/png=org.kde.gwenview.desktop
+image/jpeg=org.kde.gwenview.desktop
+image/webp=org.kde.gwenview.desktop
+image/svg+xml=org.kde.gwenview.desktop
+
+# File Manager & Folders
+inode/directory=org.kde.dolphin.desktop
+
+# Archives
+application/zip=org.kde.ark.desktop
+application/x-tar=org.kde.ark.desktop
+application/x-7z-compressed=org.kde.ark.desktop
+application/x-rar=org.kde.ark.desktop

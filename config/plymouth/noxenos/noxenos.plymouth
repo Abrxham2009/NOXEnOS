@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=NOXEnOS Boot Splash
+Description=Modern boot splash with NOXEnOS glowing emblem and progress animation
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/noxenos
+ScriptFile=/usr/share/plymouth/themes/noxenos/noxenos.script

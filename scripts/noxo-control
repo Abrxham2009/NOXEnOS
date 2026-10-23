@@ -1,0 +1,267 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# NOXEnOS Control Utility
+# Manages system personalization, themes, wallpapers, dock, and performance profiles.
+# Uses native KDE Plasma mechanisms and standards.
+# ==============================================================================
+
+set -eo pipefail
+
+WALLPAPER_DIR="/usr/share/wallpapers/NOXEnOS"
+COLOR_DIR="/usr/share/color-schemes"
+
+show_help() {
+    cat << EOF
+NOXEnOS Control Utility - Your system. Your style.
+
+Uso: noxo-control [COMANDO] [OPCIONES]
+
+Comandos disponibles:
+  gui                        Abre el panel gráfico de personalización de NOXEnOS
+  theme [dark|light]         Cambia entre modo oscuro y modo claro
+  wallpaper [opcion|ruta]    Cambia el fondo (dark, abstract, neon, light, ultrawide o ruta)
+  dock [size <px>]           Cambia el tamaño de iconos del dock (ej: 48, 56, 64)
+  dock [autohide <on|off>]   Activa o desactiva la ocultación automática del dock
+  mode [ultra|balanced|low]  Ajusta el perfil de rendimiento (animaciones y efectos)
+  status                     Muestra el estado actual del entorno
+  help                       Muestra esta ayuda
+
+Ejemplos:
+  noxo-control theme light
+  noxo-control wallpaper neon
+  noxo-control mode low
+EOF
+}
+
+set_theme() {
+    local target="$1"
+    case "$target" in
+        dark)
+            echo "[*] Aplicando tema NOXEnOS Dark..."
+            if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
+                plasma-apply-colorscheme NOXEnOSDark || true
+            fi
+            # Set GTK / Icon dark theme
+            kwriteconfig5 --file kdeglobals --group General --key ColorScheme "NOXEnOSDark" || true
+            kwriteconfig5 --file kdeglobals --group Icons --key Theme "breeze-dark" || true
+            # Configure plank theme
+            if [ -f "$HOME/.config/plank/dock1/settings" ]; then
+                sed -i 's/^Theme=.*/Theme=NOXEnOS-DarkGlass/' "$HOME/.config/plank/dock1/settings"
+            fi
+            echo "[+] Tema oscuro activado correctamente."
+            ;;
+        light)
+            echo "[*] Aplicando tema NOXEnOS Light..."
+            if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
+                plasma-apply-colorscheme NOXEnOSLight || true
+            fi
+            kwriteconfig5 --file kdeglobals --group General --key ColorScheme "NOXEnOSLight" || true
+            kwriteconfig5 --file kdeglobals --group Icons --key Theme "breeze" || true
+            if [ -f "$HOME/.config/plank/dock1/settings" ]; then
+                sed -i 's/^Theme=.*/Theme=Matte/' "$HOME/.config/plank/dock1/settings" || true
+            fi
+            echo "[+] Tema claro activado correctamente."
+            ;;
+        *)
+            echo "Error: Tema desconocido '$target'. Usa 'dark' o 'light'." >&2
+            exit 1
+            ;;
+    esac
+}
+
+set_wallpaper() {
+    local wp="$1"
+    local file=""
+    case "$wp" in
+        dark|futuristic)
+            file="$WALLPAPER_DIR/noxenos-dark-futuristic.png"
+            ;;
+        abstract)
+            file="$WALLPAPER_DIR/noxenos-abstract-minimal.png"
+            ;;
+        neon|gradient)
+            file="$WALLPAPER_DIR/noxenos-neon-gradient.png"
+            ;;
+        light)
+            file="$WALLPAPER_DIR/noxenos-light-pure.png"
+            ;;
+        ultrawide)
+            file="$WALLPAPER_DIR/noxenos-ultrawide.png"
+            ;;
+        *)
+            if [ -f "$wp" ]; then
+                file="$wp"
+            else
+                echo "Error: Fondo no encontrado: $wp" >&2
+                exit 1
+            fi
+            ;;
+    esac
+
+    echo "[*] Configurando fondo de pantalla: $file"
+    if command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
+        plasma-apply-wallpaperimage "$file" || true
+    fi
+    # Direct DBus desktop script if plasma-apply-wallpaperimage isn't present
+    qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
+        var allDesktops = desktops();
+        for (i=0;i<allDesktops.length;i++) {
+            d = allDesktops[i];
+            d.wallpaperPlugin = 'org.kde.image';
+            d.currentConfigGroup = Array('Wallpaper', 'org.kde.image', 'General');
+            d.writeConfig('Image', '$file');
+        }
+    " 2>/dev/null || true
+    echo "[+] Fondo actualizado."
+}
+
+set_dock() {
+    local action="$1"
+    local val="$2"
+    local conf="$HOME/.config/plank/dock1/settings"
+    mkdir -p "$(dirname "$conf")"
+    case "$action" in
+        size)
+            echo "[*] Ajustando tamaño de iconos del dock a ${val}px..."
+            sed -i "s/^IconSize=.*/IconSize=$val/" "$conf" || true
+            killall -HUP plank 2>/dev/null || true
+            ;;
+        autohide)
+            if [ "$val" = "on" ] || [ "$val" = "true" ]; then
+                sed -i 's/^HideMode=.*/HideMode=1/' "$conf" || true
+                echo "[+] Ocultación automática activada."
+            else
+                sed -i 's/^HideMode=.*/HideMode=0/' "$conf" || true
+                echo "[+] Dock fijado siempre visible."
+            fi
+            killall -HUP plank 2>/dev/null || true
+            ;;
+        *)
+            echo "Uso: noxo-control dock [size <px> | autohide <on|off>]"
+            ;;
+    esac
+}
+
+set_mode() {
+    local mode="$1"
+    case "$mode" in
+        low|performance)
+            echo "[*] Aplicando perfil de Rendimiento (equipos modestos)..."
+            kwriteconfig5 --file kwinrc --group Plugins --key blurEnabled false
+            kwriteconfig5 --file kwinrc --group Plugins --key sheetEnabled false
+            kwriteconfig5 --file kwinrc --group Plugins --key magiclampEnabled false
+            kwriteconfig5 --file kwinrc --group Plugins --key slidingpopupsEnabled false
+            kwriteconfig5 --file kdeglobals --group KDE --key AnimationDurationFactor 0.0
+            qdbus org.kde.KWin /KWin reconfigure 2>/dev/null || true
+            echo "[+] Modo de rendimiento activado: efectos gráficos pesados desactivados."
+            ;;
+        balanced)
+            echo "[*] Aplicando perfil Equilibrado..."
+            kwriteconfig5 --file kwinrc --group Plugins --key blurEnabled true
+            kwriteconfig5 --file kwinrc --group Plugins --key sheetEnabled true
+            kwriteconfig5 --file kwinrc --group Plugins --key magiclampEnabled false
+            kwriteconfig5 --file kdeglobals --group KDE --key AnimationDurationFactor 1.0
+            qdbus org.kde.KWin /KWin reconfigure 2>/dev/null || true
+            echo "[+] Perfil equilibrado activado."
+            ;;
+        ultra|full)
+            echo "[*] Aplicando perfil Ultra Visual (experiencia completa)..."
+            kwriteconfig5 --file kwinrc --group Plugins --key blurEnabled true
+            kwriteconfig5 --file kwinrc --group Plugins --key sheetEnabled true
+            kwriteconfig5 --file kwinrc --group Plugins --key magiclampEnabled true
+            kwriteconfig5 --file kwinrc --group Plugins --key slideEnabled true
+            kwriteconfig5 --file kdeglobals --group KDE --key AnimationDurationFactor 1.0
+            qdbus org.kde.KWin /KWin reconfigure 2>/dev/null || true
+            echo "[+] Modo ultra visual activado: blur, sombras suaves y animaciones fluidas."
+            ;;
+        *)
+            echo "Error: Perfil desconocido. Opciones: low, balanced, ultra."
+            ;;
+    esac
+}
+
+gui_menu() {
+    if command -v kdialog >/dev/null 2>&1; then
+        choice=$(kdialog --title "Centro de Control NOXEnOS" --menu "Selecciona una opción de personalización:" \
+            "1" "Cambiar a Modo Oscuro" \
+            "2" "Cambiar a Modo Claro" \
+            "3" "Fondo: Oscuro Futurista (Predeterminado)" \
+            "4" "Fondo: Abstracto Minimalista" \
+            "5" "Fondo: Degradado Neón Azul/Violeta" \
+            "6" "Fondo: Blanco Puro Minimalista" \
+            "7" "Fondo: Ultrawide Panorámico" \
+            "8" "Perfil de Rendimiento: Modo Modesto (Acelerar sistema)" \
+            "9" "Perfil de Rendimiento: Ultra Visual (Efectos completos)" \
+            "10" "Ajustes del Sistema de KDE (Completo)" 2>/dev/null)
+        case "$choice" in
+            1) set_theme dark ;;
+            2) set_theme light ;;
+            3) set_wallpaper dark ;;
+            4) set_wallpaper abstract ;;
+            5) set_wallpaper neon ;;
+            6) set_wallpaper light ;;
+            7) set_wallpaper ultrawide ;;
+            8) set_mode low ;;
+            9) set_mode ultra ;;
+            10) systemsettings & ;;
+        esac
+    elif command -v zenity >/dev/null 2>&1; then
+        choice=$(zenity --list --title="Centro de Control NOXEnOS" --column="Opción" --column="Descripción" \
+            "1" "Modo Oscuro" \
+            "2" "Modo Claro" \
+            "3" "Fondo Oscuro Futurista" \
+            "4" "Fondo Abstracto Minimal" \
+            "5" "Fondo Degradado Neón" \
+            "6" "Fondo Blanco Puro" \
+            "7" "Fondo Ultrawide" \
+            "8" "Modo Rendimiento (Desactivar efectos)" \
+            "9" "Modo Ultra (Efectos y Blur completos)" \
+            "10" "Ajustes del Sistema" 2>/dev/null)
+        case "$choice" in
+            1) set_theme dark ;;
+            2) set_theme light ;;
+            3) set_wallpaper dark ;;
+            4) set_wallpaper abstract ;;
+            5) set_wallpaper neon ;;
+            6) set_wallpaper light ;;
+            7) set_wallpaper ultrawide ;;
+            8) set_mode low ;;
+            9) set_mode ultra ;;
+            10) systemsettings & ;;
+        esac
+    else
+        show_help
+    fi
+}
+
+# Main routing
+case "${1:-}" in
+    gui)
+        gui_menu
+        ;;
+    theme)
+        set_theme "${2:-dark}"
+        ;;
+    wallpaper)
+        set_wallpaper "${2:-dark}"
+        ;;
+    dock)
+        set_dock "${2:-}" "${3:-}"
+        ;;
+    mode|performance)
+        set_mode "${2:-balanced}"
+        ;;
+    status)
+        echo "NOXEnOS System Status"
+        echo "Distro: NOXEnOS Linux"
+        echo "Slogan: Your system. Your style."
+        echo "Base: Ubuntu 24.04 LTS"
+        echo "Desktop: KDE Plasma + macOS-style TopBar & Plank Dock"
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        gui_menu
+        ;;
+esac

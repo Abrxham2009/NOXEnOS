@@ -1,0 +1,47 @@
+# NOXEnOS Linux - Preinstalled Applications
+
+# File Manager & Archive Utilities
+dolphin
+kdegraphics-thumbnailers
+kio-extras
+ffmpegthumbs
+ark
+p7zip-full
+unrar-free
+zip
+unzip
+tar
+
+# Terminal & System Monitoring
+konsole
+plasma-systemmonitor
+
+# Web Browser
+firefox
+firefox-locale-es
+
+# Multimedia
+vlc
+vlc-l10n
+vlc-plugin-base
+vlc-plugin-video-output
+gwenview
+spectacle
+
+# NOXEnOS Store & Package Management (Discover + Flatpak + PackageKit)
+plasma-discover
+plasma-discover-backend-flatpak
+flatpak
+packagekit
+packagekit-tools
+
+# System Settings & Utilities
+systemsettings
+kinfocenter
+print-manager
+cups
+cups-client
+system-config-printer
+
+# Backup & System Maintenance
+timeshift

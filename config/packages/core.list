@@ -1,0 +1,84 @@
+# NOXEnOS Linux - Core System Packages
+# Base system, kernel, boot, networking, hardware support
+
+# Kernel and hardware
+linux-generic
+linux-firmware
+casper
+discover
+laptop-detect
+os-prober
+efibootmgr
+grub-efi-amd64-signed
+grub-pc-bin
+secureboot-db
+
+# Init and core
+systemd
+systemd-sysv
+dbus
+dbus-user-session
+sudo
+locales
+console-setup
+keyboard-configuration
+tzdata
+
+# Filesystem and disk tools
+btrfs-progs
+xfsprogs
+e2fsprogs
+dosfstools
+mtools
+ntfs-3g
+parted
+gdisk
+util-linux
+
+# Networking and wireless
+network-manager
+network-manager-gnome
+wpasupplicant
+wireless-tools
+rfkill
+bluez
+bluez-tools
+modemmanager
+curl
+wget
+ca-certificates
+openssl
+
+# Audio subsystem (Modern PipeWire / WirePlumber)
+pipewire
+pipewire-audio-client-libraries
+pipewire-pulse
+wireplumber
+alsa-utils
+libspa-0.2-bluetooth
+
+# Performance & power management
+zram-tools
+tlp
+thermald
+
+# Security & package management
+ufw
+apt
+apt-utils
+software-properties-common
+unattended-upgrades
+policykit-1
+polkitd
+
+# Essential CLI tools
+bash
+bash-completion
+nano
+htop
+pciutils
+usbutils
+lshw
+inxi
+rsync
+git

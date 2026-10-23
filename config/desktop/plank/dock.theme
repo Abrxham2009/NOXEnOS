@@ -1,0 +1,29 @@
+# NOXEnOS Dark Glass - Modern macOS-inspired Plank Theme
+# Translucent dark frosted glass with subtle cyan-violet glow
+
+[PlankTheme]
+# The top padding on the dock.
+TopPadding=5
+# The bottom padding on the dock.
+BottomPadding=5
+# The left/right padding on the dock.
+HorizPadding=10
+# The size of item indicators (dots for running applications).
+IndicatorSize=4
+# The padding between items.
+ItemPadding=5
+# The corner radius for the dock background.
+RoundClip=16
+# The thickness of the border stroke.
+StrokeWidth=1
+# The border stroke color (Electric Cyan / Purple blend: #00d2ff with 60% alpha).
+StrokeColor=0;;210;;255;;140
+# The fill colors of the dock background (Frosted Dark Glass: #0e121d at 82% opacity).
+FillStartColor=14;;18;;29;;210
+FillEndColor=10;;13;;22;;225
+# The indicator color for running applications (Electric Cyan glow).
+IndicatorColor=0;;210;;255;;255
+# Outer shadow size.
+ShadowSize=8
+# Outer shadow color.
+ShadowColor=0;;0;;0;;100

@@ -1,0 +1,13 @@
+# NOXEnOS Linux - System Installer (Calamares)
+
+calamares
+calamares-settings-ubuntu
+squashfs-tools
+rsync
+gparted
+kpmcore
+python3-yaml
+libpwquality1
+cryptsetup
+dmidecode
+efibootmgr

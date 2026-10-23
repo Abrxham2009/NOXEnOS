@@ -1,0 +1,40 @@
+# NOXEnOS Calamares Branding Configuration
+---
+componentName:  noxenos
+
+welcomeStyleCalamares:   false
+welcomeExpandingLogo:    true
+windowExpanding:         normal
+windowSize:              860px,580px
+windowPlacement:         center
+
+strings:
+    productName:         NOXEnOS Linux
+    version:             2026.1 LTS
+    shortVersion:        2026.1
+    versionedName:       NOXEnOS Linux 2026.1 LTS
+    shortVersionedName:  NOXEnOS 2026.1
+    bootloaderEntryName: NOXEnOS
+    productUrl:          https://noxenos.org
+    supportUrl:          https://noxenos.org/support
+    knownIssuesUrl:      https://noxenos.org/issues
+    releaseNotesUrl:     https://noxenos.org/notes
+    donateUrl:           https://noxenos.org/donate
+
+images:
+    productLogo:         "noxenos-logo.png"
+    productIcon:         "squid.png"
+    productWelcome:      "sidebar.png"
+
+style:
+   sidebarBackground:    "#0e121d"
+   sidebarText:          "#f0f2f8"
+   sidebarTextSelect:    "#00d2ff"
+   sidebarTextHighlight: "#8a2be2"
+
+slideshow:
+   - "slide1.qml"
+   - "slide2.qml"
+   - "slide3.qml"
+
+slideshowAPI: 2

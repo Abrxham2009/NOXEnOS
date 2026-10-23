@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# NOXEnOS Welcome & Onboarding Wizard
+# Welcomes the user on first boot, provides fast access to installation,
+# store, settings, and hardware checks.
+# ==============================================================================
+
+set -eo pipefail
+
+TITLE="Bienvenido a NOXEnOS Linux"
+SLOGAN="Your system. Your style."
+
+show_welcome() {
+    # Check if running in Live environment
+    IS_LIVE=false
+    if id -u noxenos >/dev/null 2>&1 || [ -d "/rofs" ] || [ -f "/run/casper-boot" ]; then
+        IS_LIVE=true
+    fi
+
+    if command -v kdialog >/dev/null 2>&1; then
+        options=(
+            "1" "Personalizar apariencia (Tema, Fondos, Dock)"
+            "2" "Abrir NOXEnOS Store (Descubrir e instalar apps)"
+            "3" "Abrir LibreOffice Suite"
+            "4" "Ajustes del Sistema (Red, Bluetooth, Pantallas)"
+        )
+        if [ "$IS_LIVE" = true ] && [ -f "/usr/bin/calamares" ]; then
+            options=("0" "🚀 INSTALAR NOXEnOS EN EL DISCO" "${options[@]}")
+        fi
+
+        choice=$(kdialog --title "$TITLE" \
+            --menu "¡Te damos la bienvenida a NOXEnOS Linux!\n$SLOGAN\n\nElige una acción para comenzar:" \
+            "${options[@]}" 2>/dev/null || true)
+
+        case "$choice" in
+            0)
+                if command -v calamares >/dev/null 2>&1; then
+                    pkexec calamares &
+                fi
+                ;;
+            1)
+                /usr/local/bin/noxo-control gui &
+                ;;
+            2)
+                plasma-discover &
+                ;;
+            3)
+                libreoffice &
+                ;;
+            4)
+                systemsettings &
+                ;;
+        esac
+    fi
+}
+
+show_welcome
