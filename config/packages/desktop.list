@@ -1,5 +1,15 @@
 # NOXEnOS Linux - KDE Plasma Desktop Environment Packages
 
+# X11 Display Server (required for SDDM and KWin on X11)
+xorg
+xserver-xorg
+xserver-xorg-core
+xserver-xorg-video-all
+xserver-xorg-video-fbdev
+xserver-xorg-video-vesa
+xserver-xorg-input-all
+xinit
+
 # KDE Plasma Shell & Core Components
 plasma-desktop
 plasma-workspace
